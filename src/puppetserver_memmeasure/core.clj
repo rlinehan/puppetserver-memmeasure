@@ -6,6 +6,8 @@
              :as empty-scripting-containers]
             [puppetserver-memmeasure.scenarios.initialize-puppet-in-jruby-containers
              :as initialize-puppet-in-jruby-containers]
+            [puppetserver-memmeasure.scenarios.single-catalog-compile
+             :as single-catalog-compile]
             [puppetlabs.puppetserver.cli.subcommand :as cli]
             [puppetlabs.services.jruby.jruby-puppet-core :as jruby-puppet-core]
             [puppetlabs.kitchensink.core :as ks]
@@ -18,6 +20,7 @@
 
 (def default-output-dir "./target/mem-measure")
 (def default-num-containers 4)
+(def default-num-catalogs 4)
 
 (schema/defn ^:always-validate create-output-run-dir! :- File
   "Create a run-specific directory under the supplied base directory.
@@ -48,7 +51,9 @@
                                default-output-dir)
         mem-output-run-dir (create-output-run-dir! mem-output-run-dir)
         num-containers (or (:num-containers mem-measure-config)
-                           default-num-containers)]
+                           default-num-containers)
+        num-catalogs (or (:num-catalogs mem-measure-config)
+                         default-num-catalogs)]
     (log/infof "Using %d containers for simulation" num-containers)
     (scenario/run-scenarios
      jruby-puppet-config
@@ -58,7 +63,9 @@
        :fn (partial empty-scripting-containers/run-empty-scripting-containers-scenario
                     num-containers)}
       {:name "initialize puppet into scripting containers"
-       :fn initialize-puppet-in-jruby-containers/run-initialize-puppet-in-jruby-containers-scenario}])))
+       :fn initialize-puppet-in-jruby-containers/run-initialize-puppet-in-jruby-containers-scenario}
+      {:name "compile a single catalog"
+       :fn (partial single-catalog-compile/run-single-catalog-compile-scenario num-catalogs)}])))
 
 (defn -main
   [& args]
