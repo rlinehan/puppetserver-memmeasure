@@ -50,7 +50,9 @@
    (util/take-yourkit-snapshot! mem-output-run-dir "single-catalog-compile-baseline")
 
    (scenario/run-scenario-body-over-steps
-    (.handleRequest jruby-puppet (HashMap. request))
+    (fn [_ scenario-context _ _]
+      (.handleRequest jruby-puppet (HashMap. request))
+      scenario-context)
     "single-catalog-compile"
     mem-output-run-dir
     mem-at-scenario-start
